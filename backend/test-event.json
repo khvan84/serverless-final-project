@@ -1,0 +1,6 @@
+{
+    "httpMethod": "GET",
+    "path": "/public-resource",
+    "headers": { "Content-Type": "application/json" },
+    "body": null
+  }

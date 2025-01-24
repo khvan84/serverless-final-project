@@ -1,6 +1,6 @@
-process.env.TABLE_NAME = 'test';
+process.env.TABLE_NAME = 'serverless-centos-db-MRP24BCENT-12';
 process.env.AWS_REGION = 'us-east-1';
-process.env.DYNAMODB_ENDPOINT = 'http://localhost:8000';
+
 process.env.JOB_QUEUE_NAME = 'dummy';
 
 import { client, TableName } from './common/dynamodb';

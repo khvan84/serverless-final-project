@@ -36,31 +36,28 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push docker image to Amazon ECR
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: memo-app-frontend-{{ vars.DEV  }}
-          IMAGE_TAG: 0.1
+      - name: Install dependencies and build frontend
         working-directory: ./app-module/frontend
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG   
-      - name: Build, tag, and push docker image to Amazon ECR
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: memo-app-backend-${{ vars.DEV }}
-          IMAGE_TAG: 0.1
-        working-directory: ./app-module/backend
-        run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG  
+          npm install
+          npm run build
 
-      - name: Login to AWS EKS
-        run: aws eks update-kubeconfig --name EKS-Project-X
-
-      - name: Deploy App to Kubernetes
-        working-directory: ./api-backend
+      - name: Deploy to S3
+        working-directory: ./app-module/frontend
         run: |
-          helm upgrade --install reviews-app-backend ./app-helm-chart/ \
-            --values values/dev-values.yaml \
-            --namespace reviews-app --create-namespace
+          aws s3 sync dist/ s3://serverless-centos-s3-host --delete
+
+
+      # - name: Build, tag, and push docker image to Amazon ECR
+      #   env:
+      #     REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     REPOSITORY: memo-app-backend-${{ vars.DEV }}
+      #     IMAGE_TAG: 0.1
+      #   working-directory: ./app-module/backend
+      #   run: |
+      #     docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+      #     docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG  
+
+    
+
+     

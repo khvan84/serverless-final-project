@@ -7,9 +7,9 @@ on:
       - 'staging'     
       - 'production' 
       - 'feature/**'
-    paths:
-      - 'app-module/frontend/**'
-      - 'app-module/backend/**'
+    # paths:
+    #   - 'app-module/frontend/**'
+    #   - 'app-module/backend/**'
   workflow_dispatch:  
 
 permissions:

@@ -9,56 +9,59 @@ on:
       - 'feature/**'
     paths:
       - 'app-module/frontend/**'
-      - 'app-module/backend/**'  
+      - 'app-module/backend/**'
   workflow_dispatch:  
 
 permissions:
-  id-token: write # This is required for requesting the JWT
-  contents: read  # This is required for actions/checkout
+  id-token: write # Required for requesting the JWT
+  contents: read  # Required for actions/checkout
 
 jobs:
   app-deploy:
-    # specify Runner details: Self-hosted or GitHub Runner
     environment: development
-    runs-on: "ubuntu-24.04"
+    runs-on: ubuntu-latest  # Changed to a valid GitHub-hosted runner
 
     steps:
+      # Step 1: Clone the repository
       - name: Clone repo
         uses: actions/checkout@v4
 
+      # Step 2: Configure AWS credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ vars.REGION }}
-          role-to-assume: ${{ vars.IAM_ROLE }}
+          aws-region: ${{ secrets.REGION }}        # Use GitHub Secrets instead of vars
+          role-to-assume: ${{ secrets.IAM_ROLE }} # Use GitHub Secrets instead of vars
           role-session-name: gha-terraform-session
 
+      # Step 3: Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # Step 4: Install dependencies and build frontend
       - name: Install dependencies and build frontend
         working-directory: ./app-module/frontend
         run: |
           npm install
           npm run build
 
-      - name: Deploy to S3
+      # Step 5: Deploy frontend to S3
+      - name: Deploy frontend to S3
         working-directory: ./app-module/frontend
         run: |
           aws s3 sync dist/ s3://serverless-centos-s3-host --delete
 
-
-      # - name: Build, tag, and push docker image to Amazon ECR
+      # # Step 6: Build, tag, and push backend to Amazon ECR
+      # - name: Build, tag, and push backend to Amazon ECR
       #   env:
       #     REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     REPOSITORY: memo-app-backend-${{ vars.DEV }}
-      #     IMAGE_TAG: 0.1
+      #     REPOSITORY: memo-app-backend-${{ secrets.ENV }}
+      #     IMAGE_TAG: latest
       #   working-directory: ./app-module/backend
       #   run: |
       #     docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-      #     docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG  
-
+      #     docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
     
 
      
